@@ -1,0 +1,51 @@
+name: Build and Test
+
+on: [push]
+
+jobs:
+  # Job 1: Build the image
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and export
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          tags: ci_build:latest
+          outputs: type=docker,dest=/tmp/image.tar
+
+      - name: Upload image artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/image.tar
+
+  # Job 2: Run tests (depends on Build)
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp
+
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/image.tar
+          docker image ls -a
+
+      - name: Run Pytest in Docker
+        run: |
+          docker run --rm ci_build:latest pytest -vv
+
+      - name: Run lint check in docker
+        run: |
+          docker run --rm ci_build:latest flake8
