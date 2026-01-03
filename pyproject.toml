@@ -1,0 +1,29 @@
+[project]
+name = "private-project-template"
+version = "0.1.0"
+description = "A template design for private project"
+authors = [
+    { name = "Tzu-Hsiang Wang" }
+]
+readme = "README.md"
+requires-python = ">=3.12"
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+numpy = ">=2.0.0,<3.0.0"
+scikit-learn = "^1.8.0"
+pytest = "^9.0.2"
+flake8 = "^7.3.0"
+pytest-cov = "^7.0.0"
+opencv-python = "^4.12.0.88"
+scikit-image = "^0.26.0"
+isort = "^7.0.0"
+
+[tool.poe.tasks]
+install = ["install-torch"]
+
+install-torch = "pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
