@@ -19,6 +19,7 @@ Key features:
 ##  Directory Structure
 
 Project-folder
+
     ├── configs/ # Configuration files (YAML, JSON) for experiments
     ├── project_src/ # Source code
     │ ├── init.py
@@ -34,6 +35,7 @@ Project-folder
     ├── poetry.lock # Locked dependencies
     └── README.md
 
+---
 ## build docker image and init container
 
 *build docker image*
