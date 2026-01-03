@@ -1,12 +1,13 @@
-[project]
+[tool.poetry]
 name = "private-project-template"
 version = "0.1.0"
 description = "A template design for private project"
 authors = [
-    { name = "Tzu-Hsiang Wang" }
+    "Tzu-Hsiang Wang <phoenixteally@gmail.com>"
 ]
 readme = "README.md"
 requires-python = ">=3.12"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12"

@@ -26,4 +26,4 @@ RUN poetry config virtualenvs.path /venv
 RUN poetry config virtualenvs.create false
 
 ## 4. install dependencies
-RUN poetry install --no-cache -vv && poetry run poe install
+RUN poetry install --no-cache --no-root -vv && poetry run poe install
