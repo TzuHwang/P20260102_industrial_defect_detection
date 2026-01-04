@@ -15,11 +15,11 @@ RUN apt update && apt install -y \
 ## 1. Setup default venv
 RUN mkdir -p /venv/default
 RUN python3 -m venv /venv/default
-ENV PATH="/venv/default/bin:/root/.local/bin:$PATH"
-
+ENV PATH="/venv/default/bin:/root/.local/bin:$PATH" \
+    PIP_BREAK_SYSTEM_PACKAGES=1
 
 ## 2. Install poetry using the venv's python
-RUN curl -sSL https://install.python-poetry.org | python3 -
+RUN curl -sSL https://install.python-poetry.org | python3 - --version 2.0.1
 
 ## 3. Set poetry config
 RUN poetry config virtualenvs.path /venv

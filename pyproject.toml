@@ -6,8 +6,6 @@ authors = [
     "Tzu-Hsiang Wang <phoenixteally@gmail.com>"
 ]
 readme = "README.md"
-requires-python = ">=3.12"
-package-mode = false
 
 [tool.poetry.dependencies]
 python = ">=3.12"
@@ -19,6 +17,7 @@ pytest-cov = "^7.0.0"
 opencv-python = "^4.12.0.88"
 scikit-image = "^0.26.0"
 isort = "^7.0.0"
+poethepoet = "^0.39.0"
 
 [tool.poe.tasks]
 install = ["install-torch"]
