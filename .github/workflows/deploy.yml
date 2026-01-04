@@ -25,14 +25,17 @@ jobs:
           context: .
           load: true  # This loads the image directly into 'docker images'
           tags: |
-            private_projet_template:${{ steps.vars.outputs.tag }}
-            private_projet_template:latest
+            private_project_template:${{ steps.vars.outputs.tag }}
+            private_project_template:latest
 
       - name: Verify Image
-        run: docker images private_projet_template
+        run: docker images private_project_template
 
       - name: Run Pytest
-        run: docker run --rm private_projet_template:latest pytest -vv
+        run: |
+          docker run --rm \
+            --gpus all \
+            private_project_template:latest pytest -vv
 
       - name: Run Lint
-        run: docker run --rm private_projet_template:latest flake8
+        run: docker run --rm private_project_template:latest flake8
