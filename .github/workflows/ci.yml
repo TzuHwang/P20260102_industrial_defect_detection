@@ -5,7 +5,7 @@ on: [push]
 jobs:
   # Job 1: Build the image
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
   # Job 2: Run tests (depends on Build)
   test:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Download image artifact
         uses: actions/download-artifact@v4
