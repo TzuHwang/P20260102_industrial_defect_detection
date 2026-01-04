@@ -1,0 +1,30 @@
+name: Build and Test
+
+on:
+  [push]
+  # push:
+  #   branches: [main]
+  # pull_request:
+  #   branches: [main]
+
+jobs:
+  ci-pipeline:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Build directly into the local Docker daemon (load: true)
+      - name: Build image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true
+          tags: private_projet_template:ci_build
+
+      # No download needed! The image is already in the local 'docker images' list
+      - name: Run Pytest
+        run: docker run --rm private_projet_template:ci_build pytest -vv
+
+      - name: Run Lint
+        run: docker run --rm private_projet_template:ci_build flake8

@@ -1,0 +1,38 @@
+name: Release Image
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Extract Tag Name
+        id: vars
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build to Local Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          load: true  # This loads the image directly into 'docker images'
+          tags: |
+            private_projet_template:${{ steps.vars.outputs.tag }}
+            private_projet_template:latest
+
+      - name: Verify Image
+        run: docker images private_projet_template
+
+      - name: Run Pytest
+        run: docker run --rm private_projet_template:latest pytest -vv
+
+      - name: Run Lint
+        run: docker run --rm private_projet_template:latest flake8

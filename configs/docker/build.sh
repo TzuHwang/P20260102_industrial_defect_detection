@@ -1,1 +1,1 @@
-docker build -t private_project_template:last .
+docker build -t tzuhwang/nous:0.1.0 .

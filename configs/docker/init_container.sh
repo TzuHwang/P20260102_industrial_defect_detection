@@ -4,4 +4,4 @@ docker run -dit \
     -v 'D:\data':'/root/data' \
     --shm-size 256gb \
     --gpus all \
-    private_project_template:last bash
+    tzuhwang/nous:0.1.0 bash
