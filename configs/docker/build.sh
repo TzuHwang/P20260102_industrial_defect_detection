@@ -1,0 +1,1 @@
+docker build -t tzuhwang/nous:0.1.0 .

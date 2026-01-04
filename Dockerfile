@@ -1,26 +1,33 @@
-from nvidia/cuda:13.0.2-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:13.0.2-cudnn-devel-ubuntu24.04
 
-apt update && apt install -y \
-    curl \
+WORKDIR /provate_project_template
+COPY . .
+
+# Install system dependencies
+RUN apt update && apt install -y \
+    curl git wget \
     python3 python3-pip python3-venv \
-    xvfb 
+    xvfb && \
+    rm -rf /var/lib/apt/lists/*
 
+# 1. Setup Venv & Path
+ENV VIRTUAL_ENV=/venv/default
+RUN python3 -m venv $VIRTUAL_ENV
+# Add venv bin to path FIRST so 'python' and 'pip' point there automatically
+ENV PATH="$VIRTUAL_ENV/bin:/root/.local/bin:$PATH"
 
-# setup default venv with poetry
-## make venv dir
-mkdir -p /venv/default
-python3 -m venv /venv/default
-source /venv/default/bin/activate
+# 2. Install Poetry
+# We use the venv's python directly to avoid system package conflicts
+RUN curl -sSL https://install.python-poetry.org | python3 - --version 2.0.1
 
+# 3. Poetry Config
+# Since we are already in a venv and PATH is set, poetry will use it
+RUN poetry config virtualenvs.create false
 
-## install poetry
-curl -sSL https://install.python-poetry.org | python3 -
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
+# 4. Install dependencies
+RUN poetry install --no-cache --no-root -vv && poetry run poe install
 
-# set poetry config
-poetry config virtualenvs.path /venv
-poetry config virtualenvs.create false
+# 5. Persistent Activation for interactive shells
+RUN echo "source $VIRTUAL_ENV/bin/activate" >> /root/.bashrc
 
-# install dependencies
-poetry install --no-cache -vv && poetry run poe install
+CMD ["bash"]
