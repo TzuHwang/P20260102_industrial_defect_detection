@@ -32,10 +32,7 @@ jobs:
         run: docker images private_project_template
 
       - name: Run Pytest
-        run: |
-          docker run --rm \
-            --gpus all \
-            private_project_template:latest pytest -vv
+        run: docker run --rm --gpus all private_project_template:latest pytest -vv
 
       - name: Run Lint
         run: docker run --rm private_project_template:latest flake8
