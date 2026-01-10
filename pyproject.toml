@@ -18,6 +18,7 @@ opencv-python = "^4.12.0.88"
 scikit-image = "^0.26.0"
 isort = "^7.0.0"
 poethepoet = "^0.39.0"
+albumentations = "^2.0.8"
 
 [tool.poe.tasks]
 install = ["install-torch"]

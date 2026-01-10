@@ -1,5 +1,5 @@
 import argparse
-import yaml
+from utils.file_dealer import load_yaml_as_ns
 
 
 class AccessArgs:
@@ -16,8 +16,10 @@ class AccessArgs:
             choices=['train', 'inference'],
         )
 
-        self.parser.add_argument(
-            '--debug', action='store_ture', help=''
-        )
+        args = self.parser.parse_args()
+        self.args = load_yaml_as_ns(args.yml_config)
 
-        self.args = self.parser.parse_args()
+        self.args.task = args.task
+
+    def get_args(self):
+        return self.args
