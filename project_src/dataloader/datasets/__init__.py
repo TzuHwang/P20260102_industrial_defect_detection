@@ -1,4 +1,4 @@
-from torchvision.datasets import FashionMNIST
+from .tv_datasets import FashionMNIST
 
 
 __all__ = ['FashionMNIST']

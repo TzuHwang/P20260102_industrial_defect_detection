@@ -1,0 +1,23 @@
+dataloader:
+  dataset: FashionMNIST
+  batch_size: 16
+  input_size: 224
+
+  transform:
+    augmenters: [HorizontalFlip, Rotate, ShortEdgeResize, CenterCrop]
+    augmentation:
+      HorizontalFlip:
+        p: 0.5
+
+      Rotate:
+        limit: [-90, 90]
+
+      ShortEdgeResize:
+        target_size: 224
+
+      CenterCrop:
+        target_size: 224
+
+  datasets:
+    FashionMNIST:
+      data_root: 'data/test/integration/'

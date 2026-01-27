@@ -1,4 +1,4 @@
-class Loss_Fcns:
+class Loss_Funcs:
     def __init__(self, args):
         self.loss_fcns = {}
         self.loss_values = {}

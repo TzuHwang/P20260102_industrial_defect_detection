@@ -1,4 +1,8 @@
-from torch.nn import Identity
+from .classification_head import (
+    LinearClassifier,
+)
 
 
-__all__ = ['Identity']
+__all__ = [
+    'LinearClassifier',
+]

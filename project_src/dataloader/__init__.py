@@ -2,12 +2,18 @@ import numpy as np
 from torch.utils.data import DataLoader, SubsetRandomSampler
 
 from . import datasets
+from .transform import Augmenter
 
 
-class Data_Loader:
+class DataLoaderFactory:
     def __init__(self, args, split):
+        self.batch_size = args.batch_size
+        self.num_workers = args.num_workers
+
+        augmenter = Augmenter(args.transform, split)
+
         if args.dataset in datasets.__all__:
-            self.data = datasets.__dict__.get(args.dataset)(args, split)
+            self.data = datasets.__dict__.get(args.dataset)(getattr(args, args.dataset), split, augmenter)
 
     def get_loader(self):
         indices = np.arange(len(self.data))
