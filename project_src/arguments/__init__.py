@@ -4,7 +4,7 @@ from utils.file_dealer import load_yaml_as_ns
 
 class AccessArgs:
     def __init__(self):
-        self.parser = argparse.ArgumentParser
+        self.parser = argparse.ArgumentParser()
 
         # parse pipeline contral args
         self.parser.add_argument(

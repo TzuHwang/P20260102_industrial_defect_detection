@@ -9,9 +9,10 @@ class ModelFactory(nn.Module):
     def __init__(self, args):
         super(ModelFactory, self).__init__()
         self.args = args
-        self.backbone = backbone.__dict__.get(args.backbone)(getattr(args, args.backbone))
-        self.neck = neck.__dict__.get(args.neck)(getattr(args, args.neck))
-        self.head = head.__dict__.get(args.head)(getattr(args, args.head))
+
+        self.backbone = backbone.__dict__.get(args.backbone.name)(args.backbone)
+        self.neck = neck.__dict__.get(args.neck.name)(args.neck)
+        self.head = head.__dict__.get(args.head.name)(args.head)
 
     def forward(self, x):
         """Forward pass through the model."""

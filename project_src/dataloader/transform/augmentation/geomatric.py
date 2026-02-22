@@ -11,7 +11,7 @@ class Rotate(AlbumentationsAPI):
         """
         super().__init__()
         self.transform = A.Rotate(
-            limit=args.degree,
+            limit=args.limit,
             p=args.p,
             border_mode=0  # 0 = constant padding
         )

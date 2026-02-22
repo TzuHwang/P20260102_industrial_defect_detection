@@ -8,7 +8,7 @@ import torch
 import pytest
 from torchvision.models import resnet50
 
-from project_src.models import ModelFactory
+from project_src.architecture.models import ModelFactory
 
 
 @pytest.fixture(params=['resnet50'])
@@ -21,20 +21,21 @@ def test_model_architecture(request):
 def args(test_model_architecture):
     if test_model_architecture == 'resnet50':
         return SimpleNamespace(
-            backbone='ResNet50',
-            neck='Identity',
-            head='LinearClassifier',
-            ResNet50=SimpleNamespace(
+            backbone=SimpleNamespace(
+                name='ResNet50',
                 pretrained=True,
                 frozen_stages=-1,
                 norm_eval=False,
             ),
-            Identity=SimpleNamespace(),
-            LinearClassifier=SimpleNamespace(
+            neck=SimpleNamespace(
+                name='Identity'),
+            head=SimpleNamespace(
+                name='LinearClassifier',
                 in_channels=2048,
                 num_classes=1000,
                 dropout_rate=0.0,
             ),
+            activation='softmax',
         )
 
 

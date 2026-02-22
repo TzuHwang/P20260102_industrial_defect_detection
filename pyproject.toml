@@ -20,14 +20,13 @@ isort = "^7.0.0"
 poethepoet = "^0.39.0"
 albumentations = "^2.0.8"
 optree = "^0.18.0"
+lightning = "^2.6.1"
 
 [tool.poe.tasks]
 install = [
-    "disable-triton",
     "install-torch"
     ]
 
-disable-triton = "pip uninstall -y triton torch"
 install-torch = "pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130"
 
 [build-system]

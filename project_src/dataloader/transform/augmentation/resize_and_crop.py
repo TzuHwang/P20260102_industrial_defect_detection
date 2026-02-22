@@ -15,9 +15,9 @@ class Resize(AlbumentationsAPI):
 
     def __init__(self, args):
         super().__init__()
-        input_size = args.input_size
-        if isinstance(input_size, int):
-            input_size = (input_size, input_size)
+        target_size = args.target_size
+        if isinstance(target_size, int):
+            input_size = (target_size, target_size)
 
         interpolation = self.supported_interpolations.get(
             args.interpolation, cv2.INTER_LINEAR)

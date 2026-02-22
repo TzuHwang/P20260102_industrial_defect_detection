@@ -1,6 +1,6 @@
 pipeline:
   seed: 42
-  epochs: 150
+  epochs: 20
   monitor_metric: val_loss
   metric_mode: min
   devices: auto
@@ -8,29 +8,24 @@ pipeline:
   save_dir: 'outputs/template_experiment'
 
 dataloader:
-  dataset: FashionMNIST
-  batch_size: 16
-  input_size: 224
+  batch_size: 128
+  num_workers: 15
+
+  dataset:
+    name: FashionMNIST
+    data_root: 'data/test/integration/'
 
   transform:
-    augmenters: [HorizontalFlip, Rotate, ShortEdgeResize, CenterCrop]
-    augmentation:
+    augmenters:
       HorizontalFlip:
         p: 0.5
 
-      Rotate:
-        limit: [-90, 90]
-
-      ShortEdgeResize:
-        target_size: 224
-
-      CenterCrop:
-        target_size: 224
-
-  datasets:
-    FashionMNIST:
-      data_root: 'data/test/integration/'
-
+    normalizers:
+      Resize:
+        target_size: 28
+        interpolation: 'LINEAR'
+        mask_interpolation: 'NEAREST'
+        p: 1.0
 
 architecture:
   model:
@@ -59,10 +54,15 @@ architecture:
 
   scheduler:
     name: StepLR
-    step_size: 30
+    step_size: 10
     gamma: 0.1
 
   loss_funcs:
     losses: [CrossEntropyLoss]
     channel_weights: [1.0]
     loss_weights: [1.0]
+
+analyst:
+  metric_names: [Accuracy, Precision, Recall, F1Score]
+  average: macro
+

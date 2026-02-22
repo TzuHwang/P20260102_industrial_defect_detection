@@ -1,41 +1,25 @@
-from types import SimpleNamespace
-
 import torch.nn as nn
-import cv2
 from torchvision.transforms import Compose
 
 from . import augmentation
 
 
-def compose_util_transform(args):
-    util_transform = [
-        augmentation.__dict__.get(norm)(
-            getattr(args, norm)) for norm in args.normalizer if norm in augmentation.__all__]
-    util_transform.append(
-        augmentation.Resize(
-            SimpleNamespace(
-                input_size=args.input_size,
-                interpolation='LINEAR',
-                mask_interpolation='NEAREST',
-                p=1.
-            )
-        )
-    )
-    return Compose(util_transform)
+def compose_transform(args, name='augmenters'):
+    transform = []
+    if getattr(args, name, None) is None:
+        transform.append(nn.Identity())
+    else:
+        for key, value in getattr(args, name).__dict__.items():
+            if key in augmentation.__all__:
+                transform.append(augmentation.__dict__.get(key)(value))
+    return Compose(transform)
 
 
 class Augmenter:
     def __init__(self, args, split):
         self.split = split
-
-        if args.augmenters is None:
-            self.train_transform = nn.Identity()
-        else:
-            self.train_transform = Compose([
-                augmentation.__dict__.get(aug)(
-                    getattr(args, aug)) for aug in args.augmenters if aug in augmentation.__all__])
-
-        self.util_transform = compose_util_transform(args)
+        self.train_transform = compose_transform(args, name='augmenters')
+        self.util_transform = compose_transform(args, name='normalizers')
 
     def __call__(self, subject: dict):
         if self.split in ['train', 'final_train']:

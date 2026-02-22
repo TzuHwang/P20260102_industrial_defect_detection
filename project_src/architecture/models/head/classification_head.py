@@ -26,9 +26,15 @@ class ClassificationHead(nn.Module):
 
     def forward(self, x):
         """Forward pass through the classification head."""
-        # Global average pooling
-        x = self.global_pool(x)
-        x = x.view(x.size(0), -1)  # Flatten
+        # Handle both spatial (4D) and non-spatial (3D/2D) inputs
+        if x.dim() == 4:
+            # Global average pooling for spatial features (N, C, H, W)
+            x = self.global_pool(x)
+            x = x.view(x.size(0), -1)  # Flatten to (N, C)
+        elif x.dim() == 3:
+            # For sequence features (N, C, L) or (N, L, C), pool over the sequence dimension
+            x = x.mean(dim=-1)  # (N, C)
+        # If x.dim() == 2, it's already (N, C), no processing needed
 
         # Apply dropout if enabled
         if hasattr(self, 'dropout'):
@@ -42,17 +48,6 @@ class ClassificationHead(nn.Module):
 
 class LinearClassifier(ClassificationHead):
     """Linear classifier head without dropout."""
-
-    def __init__(self, args):
-        super().__init__(
-            in_channels=args.in_channels,
-            num_classes=args.num_classes,
-            dropout_rate=args.dropout_rate
-        )
-
-
-class DropoutClassifier(ClassificationHead):
-    """Classifier head with dropout for regularization."""
 
     def __init__(self, args):
         super().__init__(

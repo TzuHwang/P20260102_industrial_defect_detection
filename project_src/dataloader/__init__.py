@@ -12,8 +12,8 @@ class DataLoaderFactory:
 
         augmenter = Augmenter(args.transform, split)
 
-        if args.dataset in datasets.__all__:
-            self.data = datasets.__dict__.get(args.dataset)(getattr(args, args.dataset), split, augmenter)
+        if args.dataset.name in datasets.__all__:
+            self.data = datasets.__dict__.get(args.dataset.name)(args.dataset, split, augmenter)
 
     def get_loader(self):
         indices = np.arange(len(self.data))

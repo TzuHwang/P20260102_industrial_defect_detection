@@ -8,3 +8,6 @@ __pycache__
 # misc
 actions-runner
 configs/ci
+
+# outputs
+outputs/*
