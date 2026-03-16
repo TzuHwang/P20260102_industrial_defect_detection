@@ -9,9 +9,9 @@ import lightning as L
 import torch
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
+from project_src.analyst import StatisticMetrics
 from project_src.architecture import ArchitectureBuilder
 from project_src.dataloader import DataLoaderFactory
-from project_src.analyst import StatisticMetrics
 from project_src.utils.pipeline import get_attr
 
 
@@ -128,7 +128,7 @@ class LitModel(L.LightningModule):
         outputs = self.activation(self(inputs.float()))
 
         # Compute loss
-        loss = self.criterion.get_loss_value(outputs, targets)
+        loss = self.criterion.compute_loss_value(outputs, targets)
 
         return loss, outputs, targets
 

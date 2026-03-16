@@ -4,10 +4,11 @@ Inference module using PyTorch Lightning.
 This module provides inference functionality using the trained Lightning model.
 """
 
-import torch
-from project_src.dataloader import DataLoaderFactory
-from project_src.dataloader.transform import Augmenter
 import numpy as np
+import torch
+
+from project_src.architecture import ArchitectureBuilder
+from project_src.dataloader import DataLoaderFactory
 
 
 @torch.no_grad()
@@ -23,7 +24,9 @@ def inference(args):
     if checkpoint_path is None:
         raise ValueError("checkpoint_path must be provided in args for inference")
 
-    model = load_checkpoint(checkpoint_path, args)
+    arch = ArchitectureBuilder(args.architecture)
+    arch.load_pretrained()
+    model = arch.get_model()
     model.eval()
 
     # Setup device

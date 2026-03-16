@@ -6,8 +6,8 @@ Usage:
 """
 
 from project_src.arguments import AccessArgs
-from project_src.train import train
 from project_src.inference import inference
+from project_src.train import train
 
 
 def main():

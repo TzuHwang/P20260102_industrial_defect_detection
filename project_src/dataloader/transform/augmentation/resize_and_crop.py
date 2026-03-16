@@ -1,5 +1,5 @@
-import cv2
 import albumentations as A
+import cv2
 
 from .__template__ import AlbumentationsAPI
 

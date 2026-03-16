@@ -1,10 +1,11 @@
-import pytest
 from types import SimpleNamespace
 
 import numpy as np
+import pytest
 import torch
 
 from project_src.dataloader import DataLoaderFactory
+from project_src.utils.file_dealer import load_yaml_as_ns
 
 
 """
@@ -52,25 +53,10 @@ def validate_data(data, batch_size):
 
 @pytest.fixture
 def args(testcase):
-    return SimpleNamespace(
-        dataset='FashionMNIST',
-        augmenters=['BrightnessContrast'],
-        batch_size=testcase,
-        num_workers=0,
-        transform=SimpleNamespace(
-            augmenters=['BrightnessContrast'],
-            normalizer=[],
-            input_size=224,
-            BrightnessContrast=SimpleNamespace(
-                brightness=0.2,
-                contrast=0.2,
-                p=1.0,
-            ),
-        ),
-        FashionMNIST=SimpleNamespace(
-            data_root='data/test/integration/FashionMNIST'
-        ),
-    )
+    template_yml = 'configs/yamls/template_config.yaml'
+    args = load_yaml_as_ns(template_yml).dataloader
+    args.batch_size = testcase
+    return args
 
 
 def test_dataloader(args, testcase):

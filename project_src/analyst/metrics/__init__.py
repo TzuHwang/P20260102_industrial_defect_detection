@@ -1,7 +1,6 @@
 import numpy as np
-
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
-
+from sklearn.metrics import (accuracy_score, f1_score, precision_score,
+                             recall_score, roc_auc_score)
 
 __all__ = [
     'Accuracy',

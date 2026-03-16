@@ -1,8 +1,8 @@
-from typing import Dict, Any, Mapping
-
-import torch.nn as nn
 import random
+from typing import Any, Dict, Mapping
+
 import albumentations as A
+import torch.nn as nn
 
 
 class AugmentationTemplate(nn.Module):

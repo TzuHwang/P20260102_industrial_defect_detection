@@ -1,7 +1,7 @@
 import torch.nn as nn
 
 
-class LossFuncs:
+class LossFactory:
     def __init__(self, args):
         self.losses = args.losses
         self.channel_weights = args.channel_weights
@@ -18,7 +18,6 @@ class LossFuncs:
         loss_mapping = {
             'CrossEntropyLoss': nn.CrossEntropyLoss,
             'BCELoss': nn.BCELoss,
-            'BCEWithLogitsLoss': nn.BCEWithLogitsLoss,
             'MSELoss': nn.MSELoss,
             'L1Loss': nn.L1Loss,
             'SmoothL1Loss': nn.SmoothL1Loss,
@@ -33,7 +32,7 @@ class LossFuncs:
     def get_loss_fcns(self):
         return self.loss_fcns
 
-    def get_loss_value(self, pred, target):
+    def compute_loss_value(self, pred, target):
         """
         Compute the weighted sum of loss values.
 
@@ -44,6 +43,7 @@ class LossFuncs:
         Returns:
             Total loss value
         """
+        self.loss_values = {}
         total_loss = 0.0
 
         for i, loss_name in enumerate(self.losses):

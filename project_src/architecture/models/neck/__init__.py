@@ -1,6 +1,5 @@
 from torch.nn import Identity as TorchIdentity
 
-
 __all__ = [
     'Identity',
 ]

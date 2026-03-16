@@ -1,6 +1,6 @@
 import numpy as np
-import torchvision.datasets as D  # noqa
 import torch.utils.data as data
+import torchvision.datasets as D  # noqa
 
 
 class FashionMNIST(data.Dataset):

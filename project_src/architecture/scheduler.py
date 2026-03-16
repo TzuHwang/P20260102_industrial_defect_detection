@@ -1,6 +1,5 @@
-from torch.optim.lr_scheduler import _LRScheduler, ReduceLROnPlateau
 import torch.optim.lr_scheduler as lr_scheduler
-
+from torch.optim.lr_scheduler import ReduceLROnPlateau, _LRScheduler
 
 from project_src.utils.file_dealer import namespace_to_dict
 from project_src.utils.pipeline import get_attr
@@ -84,14 +83,15 @@ class SchedulerFactory:
 
     def __init__(self, optimizer, args):
         args_dict = namespace_to_dict(args)
+        warmup_iters = args_dict.pop('warmup_iters', 0)
         base_scheduler = self.schedulers.get(args_dict.pop('name', 'ExponentialLR'), lr_scheduler.ExponentialLR)(
             optimizer, **args_dict
         )
 
-        if hasattr(args, 'warmup_iters') and args.warmup_iters > 0:
+        if warmup_iters > 0:
             self.scheduler = GradualWarmupScheduler(
                 optimizer,
-                total_iters=args.warmup_iters,
+                total_iters=warmup_iters,
                 after_scheduler=base_scheduler,
             )
         else:

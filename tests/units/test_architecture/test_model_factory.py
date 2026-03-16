@@ -4,7 +4,6 @@ Tests that our implementations match torchvision's structure and functionality.
 """
 from types import SimpleNamespace
 
-import torch
 import pytest
 from torchvision.models import resnet50
 

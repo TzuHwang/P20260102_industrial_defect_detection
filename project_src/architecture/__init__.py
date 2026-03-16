@@ -1,10 +1,10 @@
 import torch
 
-from .models import ModelFactory
 from .activation import ActivationFactory
+from .loss import LossFactory
+from .models import ModelFactory
 from .optimizer import OptimizerFactory
 from .scheduler import SchedulerFactory
-from .loss import LossFuncs
 
 
 class ArchitectureBuilder:
@@ -16,7 +16,7 @@ class ArchitectureBuilder:
 
         self.model = ModelFactory(args.model)
         self.activation = ActivationFactory(args.activation).get_activation()
-        self.loss_funcs = LossFuncs(args.loss_funcs)
+        self.loss_funcs = LossFactory(args.loss_funcs)
 
         self.optimizer = OptimizerFactory(self.model.parameters(), args.optimizer).get_optimizer()
         self.scheduler = SchedulerFactory(self.optimizer, args.scheduler).get_scheduler()
