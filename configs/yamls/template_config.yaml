@@ -1,0 +1,68 @@
+pipeline:
+  seed: 42
+  epochs: 20
+  monitor_metric: val_loss
+  metric_mode: min
+  devices: auto
+  fast_dev_run: false
+  save_dir: 'outputs/template_experiment'
+
+dataloader:
+  batch_size: 128
+  num_workers: 15
+
+  dataset:
+    name: FashionMNIST
+    data_root: 'data/test/integration/'
+
+  transform:
+    augmenters:
+      HorizontalFlip:
+        p: 0.5
+
+    normalizers:
+      Resize:
+        target_size: 28
+        interpolation: 'LINEAR'
+        mask_interpolation: 'NEAREST'
+        p: 1.0
+
+architecture:
+  model:
+    backbone:
+      name: ResNet18
+      pretrained: true
+      frozen_stages: -1
+      norm_eval: false
+
+    neck:
+      name: Identity
+
+    head:
+      name: LinearClassifier
+      in_channels: 512
+      num_classes: 10
+      dropout_rate: 0.5
+
+  activation:
+    name: softmax
+
+  optimizer:
+    name: Adam
+    lr: 0.001
+    weight_decay: 0.0001
+
+  scheduler:
+    name: StepLR
+    step_size: 10
+    gamma: 0.1
+
+  loss_funcs:
+    losses: [CrossEntropyLoss]
+    channel_weights: [1.0]
+    loss_weights: [1.0]
+
+analyst:
+  metric_names: [Accuracy, Precision, Recall, F1Score]
+  average: macro
+

@@ -1,2 +1,13 @@
+# vscode
+__pycache__
+
+# pytest
+*FashionMNIST*
+.pytest_cache
+
+# misc
 actions-runner
 configs/ci
+
+# outputs
+outputs/*
