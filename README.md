@@ -1,4 +1,4 @@
-# private_project_template
+# P20260102_industrial_defect_detection
 A template design for private machine learning projects.  
 Maintainer: Tzu-Hsiang Wang  
 Init-date: 2026/01/03

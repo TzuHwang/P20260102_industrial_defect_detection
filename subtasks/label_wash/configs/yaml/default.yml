@@ -1,0 +1,3 @@
+# Default configuration for label_wash subtask
+data_dir: /root/data/tap_measure
+output: null

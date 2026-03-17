@@ -4,4 +4,4 @@ docker run -dit \
     -v 'D:\data':'/root/data' \
     --shm-size 256gb \
     --gpus all \
-    private_project_template:ci_build bash
+    P20260102_industrial_defect_detection:ci_build bash

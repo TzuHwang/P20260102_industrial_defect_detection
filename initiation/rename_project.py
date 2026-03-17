@@ -40,5 +40,5 @@ def rename_project(old_name, new_name):
 
 if __name__ == '__main__':
     target_name = input('Enter the new project name: ')
-    rename_project('private_projet_template', target_name)
+    rename_project('private_project_template', target_name)
     print('\nDone! All instances replaced.')
