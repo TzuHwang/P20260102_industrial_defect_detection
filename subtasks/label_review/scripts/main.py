@@ -3,6 +3,9 @@ import os
 import re
 from pathlib import Path
 
+import cv2
+import numpy as np
+
 from project_src.arguments import AccessArgs
 
 
@@ -87,28 +90,50 @@ def extract_tags_from_xml(xml_path):
     return tags
 
 
-def collect_all_tags(pairs):
-    """Collect all unique tag types from XML annotations.
+def create_composite(image_paths, tag):
+    """Create a composite image with up to 5 images arranged horizontally on a white canvas,
+    with the tag label on the top left.
 
     Args:
-        pairs: List of (image_path, xml_path) tuples.
+        image_paths: List of image file paths.
+        tag: The label/tag name.
 
     Returns:
-        Sorted list of unique tag types.
+        Composite image as numpy array.
     """
-    all_tags = set()
-    for _, xml_path in pairs:
-        tags = extract_tags_from_xml(xml_path)
-        all_tags.update(tags)
+    resized_images = []
+    for path in image_paths:
+        img = cv2.imread(path)
+        if img is None:
+            continue
+        img = cv2.resize(img, (200, 200))
+        resized_images.append(img)
 
-    return sorted(all_tags)
+    if not resized_images:
+        # Empty canvas if no images
+        canvas = np.ones((250, 1000, 3), dtype=np.uint8) * 255
+    else:
+        # Arrange images horizontally
+        canvas_height = 250  # 50 for text + 200 for images
+        canvas_width = 200 * len(resized_images)
+        canvas = np.ones((canvas_height, canvas_width, 3), dtype=np.uint8) * 255
+
+        for i, img in enumerate(resized_images):
+            y_start = 50
+            x_start = i * 200
+            canvas[y_start: y_start + 200, x_start: x_start + 200] = img
+
+    # Put text on top left, ensuring no overlap
+    cv2.putText(canvas, tag, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+
+    return canvas
 
 
 def main(args):
     """Main function for label_wash subtask.
 
-    Iterates through /root/data/tap_measure to find all image files with
-    corresponding XML annotations, and lists all possible tag types.
+    Creates composite images for each label, showing up to 5 images per label on a white canvas
+    with the label text on the top left.
 
     Args:
         args: Arguments namespace from AccessArgs.
@@ -122,26 +147,35 @@ def main(args):
     pairs = find_image_xml_pairs(data_dir)
     print(f"Found {len(pairs)} image-xml pairs")
 
-    # Collect all unique tags
-    all_tags = collect_all_tags(pairs)
+    # Collect tag to images mapping
+    tag_to_images = {}
+    for img_path, xml_path in pairs:
+        tags = extract_tags_from_xml(xml_path)
+        for tag in tags:
+            if tag not in tag_to_images:
+                tag_to_images[tag] = []
+            tag_to_images[tag].append(img_path)
 
-    print(f"\nAll possible tag types ({len(all_tags)}):")
+    # Output directory
+    output_dir = getattr(args, 'output', None)
+    if output_dir is None:
+        output_dir = 'outputs/label_wash'
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    print(f"Creating composites in: {output_path}")
     print("-" * 60)
-    for tag in all_tags:
-        print(f"  - {tag}")
 
-    # Optional: save results to output file if configured
-    if hasattr(args, 'output') and args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write("Image-XML Pairs:\n")
-            for img, xml in pairs:
-                f.write(f"{img} <-> {xml}\n")
-            f.write("\nAll Tags:\n")
-            for tag in all_tags:
-                f.write(f"{tag}\n")
-        print(f"\nResults saved to: {output_path}")
+    for tag, images in tag_to_images.items():
+        if not images:
+            continue
+        selected = images[:5]  # Select up to 5 images
+        composite = create_composite(selected, tag)
+        composite_file = output_path / f"{tag}.png"
+        cv2.imwrite(str(composite_file), composite)
+        print(f"Saved composite for '{tag}' with {len(selected)} images to {composite_file}")
+
+    print(f"\nCompleted creating composites for {len(tag_to_images)} labels.")
 
 
 if __name__ == '__main__':

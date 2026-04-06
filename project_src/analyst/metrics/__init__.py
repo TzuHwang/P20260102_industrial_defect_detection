@@ -48,4 +48,5 @@ class AUC:
         self.average = args.average
 
     def __call__(self, outputs, targets):
-        return np.round(roc_auc_score(targets, outputs, average=self.average), 4)
+        labels = list(range(outputs.shape[1]))
+        return np.round(roc_auc_score(targets, outputs, average=self.average, multi_class='ovr', labels=labels), 4)

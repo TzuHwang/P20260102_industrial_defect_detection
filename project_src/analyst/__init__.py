@@ -33,10 +33,12 @@ class StatisticMetrics:
         Returns:
             dict: Dictionary mapping metric names to their computed values.
         """
+        outputs = outputs.detach().cpu()
+        targets = targets.detach().cpu()
         results = {}
         for name, metric in self.metrics.items():
             if name not in ['AUC']:
-                outputs_ = outputs.argmax(dim=1)  # Convert to class labels for non-AUC metrics
+                outputs_ = outputs.argmax(dim=1)
             else:
                 outputs_ = outputs
             results[name] = metric(outputs_, targets)

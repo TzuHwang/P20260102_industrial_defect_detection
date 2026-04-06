@@ -21,6 +21,7 @@ poethepoet = "^0.39.0"
 albumentations = "^2.0.8"
 optree = "^0.18.0"
 lightning = "^2.6.1"
+matplotlab = "^0.1.14"
 
 [tool.poe.tasks]
 install = [

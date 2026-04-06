@@ -1,5 +1,7 @@
 import torch.nn as nn
 
+from .focal_loss import FocalLoss
+
 
 class LossFactory:
     def __init__(self, args):
@@ -21,6 +23,7 @@ class LossFactory:
             'MSELoss': nn.MSELoss,
             'L1Loss': nn.L1Loss,
             'SmoothL1Loss': nn.SmoothL1Loss,
+            'FocalLoss': FocalLoss,
         }
 
         for loss_name in self.losses:

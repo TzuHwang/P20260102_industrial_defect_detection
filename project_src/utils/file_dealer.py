@@ -1,6 +1,8 @@
 from types import SimpleNamespace
 
 import yaml
+import json
+import csv
 
 
 def dict_to_namespace(obj):
@@ -23,3 +25,16 @@ def load_yaml_as_ns(filepath):
         # safe_load is best practice to avoid code injection
         data = yaml.safe_load(f)
     return dict_to_namespace(data)
+
+
+def json_loader(filepath):
+    with open(filepath, 'r') as f:
+        js_data = json.load(f)
+    return js_data
+
+
+def csv_loader(filepath):
+    with open(filepath, 'r') as f:
+        reader = csv.reader(f)
+        data = list(reader)
+    return data

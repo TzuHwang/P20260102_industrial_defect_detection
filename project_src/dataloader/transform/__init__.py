@@ -1,5 +1,5 @@
 import torch.nn as nn
-from torchvision.transforms import Compose
+from torchvision.transforms import Compose, ToTensor
 
 from . import augmentation
 
