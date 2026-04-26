@@ -11,3 +11,7 @@ configs/ci
 
 # outputs
 outputs/*
+
+# vscode
+.vscode/
+pyrightconfig.json

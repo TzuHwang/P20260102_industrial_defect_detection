@@ -1,0 +1,17 @@
+# Default configuration for data_preprocessing subtask
+data_dir: /root/data/tap_measure
+exclude_subdirs: [
+  "OneDrive_1_2026-2-26/舊版尺帶/Test20221103",
+]
+exclude_keywords: [test, 測試]
+
+output: "data/internal_train/data_list"
+output_format: "csv"
+
+# Split configuration (used by split.py)
+data_list: "data/internal_train/data_list/data_list.csv"
+split_output: "data/internal_train/data_split_back.json"
+train_ratio: 0.8
+val_ratio: 0.2
+seed: 42
+side: back

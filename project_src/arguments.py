@@ -14,7 +14,7 @@ class AccessArgs:
 
         self.parser.add_argument(
             '--task', type=str, help='',
-            choices=['train', 'inference'],
+            choices=['train', 'inference', 'deploy'],
         )
 
         args = self.parser.parse_args()

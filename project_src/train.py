@@ -38,16 +38,17 @@ class LitModel(L.LightningModule):
         self.criterion = self.arch.get_loss_funcs()
 
         # Setup metrics
-        self.metrics = StatisticMetrics(args.analyst)
+        self.metrics = StatisticMetrics(args.analyst, self.criterion)
 
         # Track best validation metric
-        metric_mode = get_attr(args, 'metric_mode', 'min')
-        self.best_val_metric = float('inf') if metric_mode == 'min' else float('-inf')
+        self.metric_mode = get_attr(args, 'metric_mode', 'min')
+        self.monitor_metric = get_attr(args, 'monitor_metric', 'val_loss')
+        self.best_val_metric = float('inf') if self.metric_mode == 'min' else float('-inf')
 
         # Accumulate outputs and targets for epoch-end metric computation
-        self._train_outputs, self._train_targets = [], []
-        self._val_outputs, self._val_targets = [], []
-        self._test_outputs, self._test_targets = [], []
+        self._train_probs, self._train_logits, self._train_targets = [], [], []
+        self._val_probs, self._val_logits, self._val_targets = [], [], []
+        self._test_probs, self._test_logits, self._test_targets = [], [], []
 
     def forward(self, x):
         """Forward pass through the model."""
@@ -72,7 +73,7 @@ class LitModel(L.LightningModule):
             'lr_scheduler': scheduler_config,
         }
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, *args, **kwargs):
         """
         Training step.
 
@@ -83,12 +84,14 @@ class LitModel(L.LightningModule):
         Returns:
             Training loss for backpropagation
         """
-        loss, outputs, targets = self._run(batch, session='train')
-        self._train_outputs.append(outputs)
+
+        loss, probs, logits, targets = self._run(batch, session='train')
+        self._train_probs.append(probs)
+        self._train_logits.append(logits)
         self._train_targets.append(targets)
         return loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, *args, **kwargs):
         """
         Validation step.
 
@@ -99,12 +102,14 @@ class LitModel(L.LightningModule):
         Returns:
             Validation loss
         """
-        loss, outputs, targets = self._run(batch, session='val')
-        self._val_outputs.append(outputs)
+
+        loss, probs, logits, targets = self._run(batch, session='val')
+        self._val_probs.append(probs)
+        self._val_logits.append(logits)
         self._val_targets.append(targets)
         return loss
 
-    def test_step(self, batch, batch_idx):
+    def test_step(self, batch, *args, **kwargs):
         """
         Test step.
 
@@ -115,22 +120,25 @@ class LitModel(L.LightningModule):
         Returns:
             Test loss and accuracy
         """
-        loss, outputs, targets = self._run(batch, session='test')
-        self._test_outputs.append(outputs)
+        loss, outputs, logits, targets = self._run(batch, session='test')
+        self._test_probs.append(outputs)
+        self._test_logits.append(logits)
         self._test_targets.append(targets)
         return loss
 
-    def _run(self, batch, session: str):
+    def _run(self, batch, *args, **kwargs):
         """Shared process logic for training, validation, and testing."""
+
         inputs, targets = self._process_batch(batch)
 
         # Forward pass
-        outputs = self.activation(self(inputs.float()))
+        logits = self(inputs.float())
+        probs = self.activation(logits)
 
         # Compute loss
-        loss = self.criterion.compute_loss_value(outputs, targets)
+        loss = self.criterion.compute_loss_value(probs, logits, targets)
 
-        return loss, outputs, targets
+        return loss, probs, logits, targets
 
     def _process_batch(self, batch):
         """
@@ -158,50 +166,81 @@ class LitModel(L.LightningModule):
 
     def on_validation_epoch_end(self):
         """Called at the end of validation epoch."""
-        val_loss = self.trainer.callback_metrics.get('val_loss')
-        if val_loss is not None:
-            # Track best validation metric
-            metric_mode = get_attr(self.args, 'metric_mode', 'min')
-            if metric_mode == 'min':
-                self.best_val_metric = min(self.best_val_metric, val_loss.item())
-            else:
-                self.best_val_metric = max(self.best_val_metric, val_loss.item())
-
-            self.log('best_val_metric', self.best_val_metric, prog_bar=True, logger=True)
 
         # Compute validation metrics at epoch end
-        if self._val_outputs:
-            all_outputs = torch.cat(self._val_outputs, dim=0).cpu()
-            all_targets = torch.cat(self._val_targets, dim=0).cpu()
-            metrics = self.metrics.compute_metrics(all_outputs, all_targets)
-            for metric_name, metric_value in metrics.items():
-                self.log(f'val_{metric_name}', metric_value, prog_bar=True, logger=True)
-            self._val_outputs.clear()
+        if self._val_probs:
+            self._log_metrics(
+                self._val_probs,
+                self._val_logits,
+                self._val_targets,
+                split='val'
+            )
+            self._val_probs.clear()
+            self._val_logits.clear()
             self._val_targets.clear()
+
+        val_metric = self.trainer.callback_metrics.get(self.monitor_metric, None)
+        if val_metric is not None:
+            # Track best validation metric
+            is_best = (
+                val_metric < self.best_val_metric
+            ) if self.metric_mode == 'min' else (
+                val_metric > self.best_val_metric
+            )
+
+            if is_best:
+                # update best metric if current is better than best
+                self.best_val_metric = val_metric
+                self.trainer.save_checkpoint(f'{self.trainer.default_root_dir}/best_model.ckpt')
 
     def on_train_epoch_end(self):
         """Called at the end of training epoch."""
         # Compute training metrics at epoch end
-        if self._train_outputs:
-            all_outputs = torch.cat(self._train_outputs, dim=0).cpu()
-            all_targets = torch.cat(self._train_targets, dim=0).cpu()
-            metrics = self.metrics.compute_metrics(all_outputs, all_targets)
-            for metric_name, metric_value in metrics.items():
-                self.log(f'train_{metric_name}', metric_value, prog_bar=True, logger=True, sync_dist=True)
-            self._train_outputs.clear()
+        if self._train_probs:
+            self._log_metrics(
+                self._train_probs,
+                self._train_logits,
+                self._train_targets,
+                split='train'
+            )
+            self._train_probs.clear()
+            self._train_logits.clear()
             self._train_targets.clear()
 
     def on_test_epoch_end(self):
         """Called at the end of test epoch."""
         # Compute test metrics at epoch end
-        if self._test_outputs:
-            all_outputs = torch.cat(self._test_outputs, dim=0).cpu()
-            all_targets = torch.cat(self._test_targets, dim=0).cpu()
-            metrics = self.metrics.compute_metrics(all_outputs, all_targets)
-            for metric_name, metric_value in metrics.items():
-                self.log(f'test_{metric_name}', metric_value, prog_bar=True, logger=True)
-            self._test_outputs.clear()
+        if self._test_probs:
+            self._log_metrics(
+                self._test_probs,
+                self._test_logits,
+                self._test_targets,
+                split='test'
+            )
+            self._test_probs.clear()
+            self._test_logits.clear()
             self._test_targets.clear()
+
+    def _log_metrics(self, prob_collection, logit_collection, target_collection, split):
+        all_probs = torch.cat(prob_collection, dim=0).detach().cpu()
+        all_logits = torch.cat(logit_collection, dim=0).detach().cpu()
+        all_targets = torch.cat(target_collection, dim=0).detach().cpu()
+        metrics = self.metrics.compute_metrics(all_probs, all_logits, all_targets)
+        if split == 'test':
+            self.metrics.plot_metrics(
+                all_probs,
+                all_targets,
+                out_dir=self.trainer.logger.experiment.log_dir,
+            )
+        for metric_name, metric_value in metrics.items():
+            self.log(
+                f'{split}_{metric_name}',
+                metric_value,
+                prog_bar=True,
+                logger=True,
+                sync_dist=True
+            )
+        return metrics
 
 
 def train(args):
@@ -241,10 +280,11 @@ def train(args):
         default_root_dir=get_attr(args.pipeline, 'save_dir', './outputs'),
     )
 
-    # Train the model
-    trainer.fit(model, train_loader, val_loader)
+    # Train the model (pass ckpt_path to resume from a checkpoint)
+    ckpt_path = get_attr(args.pipeline, 'resume_ckpt', None)
+    trainer.fit(model, train_loader, val_loader, ckpt_path=ckpt_path)
 
     # Test on test set if available
-    if get_attr(args, 'test_split', False):
-        test_loader = DataLoaderFactory(args, 'test').get_loader()
+    if get_attr(args.pipeline, 'run_test', False):
+        test_loader = DataLoaderFactory(args.dataloader, 'test').get_loader()
         trainer.test(model, test_loader)

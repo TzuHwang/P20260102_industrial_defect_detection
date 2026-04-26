@@ -6,6 +6,7 @@ pipeline:
   devices: auto
   fast_dev_run: false
   save_dir: 'outputs/template_experiment'
+  resume_ckpt: null  # path to checkpoint to resume from, e.g. 'outputs/my_exp/lightning_logs/version_0/checkpoints/epoch=9-step=1000.ckpt'
 
 dataloader:
   batch_size: 128

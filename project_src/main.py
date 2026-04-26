@@ -6,6 +6,7 @@ Usage:
 """
 
 from project_src.arguments import AccessArgs
+from project_src.deploy import export_onnx
 from project_src.inference import inference
 from project_src.train import train
 
@@ -21,8 +22,11 @@ def main():
         train(args)
     elif args.task == 'inference':
         inference(args)
+    elif args.task == 'deploy':
+        export_onnx(args)
+
     else:
-        raise ValueError(f"Unknown task: {args.task}. Choose from ['train', 'inference']")
+        raise ValueError(f"Unknown task: {args.task}. Choose from ['train', 'inference', 'deploy']")
 
 
 if __name__ == '__main__':

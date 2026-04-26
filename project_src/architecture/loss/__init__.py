@@ -4,6 +4,9 @@ from .focal_loss import FocalLoss
 
 
 class LossFactory:
+    # Loss functions with built-in activation — expect raw logits
+    LOGIT_LOSSES = {'CrossEntropyLoss', 'BCEWithLogitsLoss', 'FocalLoss'}
+
     def __init__(self, args):
         self.losses = args.losses
         self.channel_weights = args.channel_weights
@@ -20,6 +23,7 @@ class LossFactory:
         loss_mapping = {
             'CrossEntropyLoss': nn.CrossEntropyLoss,
             'BCELoss': nn.BCELoss,
+            'BCEWithLogitsLoss': nn.BCEWithLogitsLoss,
             'MSELoss': nn.MSELoss,
             'L1Loss': nn.L1Loss,
             'SmoothL1Loss': nn.SmoothL1Loss,
@@ -35,12 +39,13 @@ class LossFactory:
     def get_loss_fcns(self):
         return self.loss_fcns
 
-    def compute_loss_value(self, pred, target):
+    def compute_loss_value(self, probs, logits, target):
         """
         Compute the weighted sum of loss values.
 
         Args:
-            pred: Model predictions
+            probs: Model probabilities
+            logits: Model logits
             target: Ground truth targets
 
         Returns:
@@ -51,7 +56,8 @@ class LossFactory:
 
         for i, loss_name in enumerate(self.losses):
             loss_fcn = self.loss_fcns[loss_name]
-            loss_value = loss_fcn(pred, target)
+            inputs = logits if loss_name in self.LOGIT_LOSSES else probs
+            loss_value = loss_fcn(inputs, target)
 
             # Apply loss weight if specified
             if self.weights is not None:

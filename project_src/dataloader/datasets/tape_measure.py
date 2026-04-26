@@ -31,5 +31,5 @@ class TapeMeasureInspection(data.Dataset):
                 'label': target
             }
         })
-
+        print(aug_data['inputs'].max(), aug_data['inputs'].min(), aug_data['inputs'].dtype)
         return aug_data

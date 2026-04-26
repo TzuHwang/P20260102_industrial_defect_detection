@@ -1,7 +1,8 @@
 docker run -dit \
-    --name P20260102_industrial_defect_detection \
+    --name tape_measure \
     -v 'D:\code_library':'/root/code_library' \
-    -v 'D:\data':'/root/data' \
+    -v 'E:\cache_data':'/root/data' \
+    -v 'C:\Users\User\.claude':'/root/.claude':ro \
     --shm-size 256gb \
     --gpus all \
-    P20260102_industrial_defect_detection:ci_build bash
+    private_project_template:ci_build bash

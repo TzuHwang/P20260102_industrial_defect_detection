@@ -21,7 +21,9 @@ poethepoet = "^0.39.0"
 albumentations = "^2.0.8"
 optree = "^0.18.0"
 lightning = "^2.6.1"
-matplotlab = "^0.1.14"
+matplotlib = "^3.10.8"
+pandas = "^3.0.2"
+onnxruntime = "^1.24.4"
 
 [tool.poe.tasks]
 install = [
@@ -29,6 +31,9 @@ install = [
     ]
 
 install-torch = "pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130"
+
+[tool.pylint.messages_control]
+disable = ["W0221"]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

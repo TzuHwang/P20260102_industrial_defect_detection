@@ -19,6 +19,13 @@ from project_src.arguments import AccessArgs
 SIDE_CHOICES = ('front', 'back', 'both')
 
 
+def force_label_continuity(labels):
+    """Remap labels to ensure they are continuous integers starting from 0."""
+    unique_labels = sorted(set(labels))
+    label_map = {old: new for new, old in enumerate(unique_labels)}
+    return [label_map[label] for label in labels], label_map
+
+
 def split_by_dir(csv_path, output_path, val_ratio=0.1,
                  seed=42, side='both'):
     if side not in SIDE_CHOICES:
@@ -29,9 +36,13 @@ def split_by_dir(csv_path, output_path, val_ratio=0.1,
 
     src_pths, labels = [], []
     for r in records:
+        if side != 'both' and r['side'] != side:
+            continue
         dir, name = r['file_dir'], r['filename']
         src_pths.append(f'{dir}/{name}')
         labels.append(int(r['class']))
+
+    labels, label_map = force_label_continuity(labels)
 
     train_pths, test_pths, train_labels, test_labels = train_test_split(
         src_pths, labels, test_size=val_ratio, random_state=seed
@@ -49,9 +60,16 @@ def split_by_dir(csv_path, output_path, val_ratio=0.1,
     }
 
     out_path = Path(output_path)
+
+    # save split JSON
     out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, 'w', encoding='utf-8') as f:
         json.dump(split, f, ensure_ascii=False, indent=2)
+
+    # save label mapping for reference
+    label_map_path = out_path.parent / f'{out_path.stem}_label_map.json'
+    with open(label_map_path, 'w', encoding='utf-8') as f:
+        json.dump(label_map, f, ensure_ascii=False, indent=2)
 
     total = sum(len(v) for v in split.values())
     print(f"Side filter: {side}")
