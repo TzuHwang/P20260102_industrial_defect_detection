@@ -33,7 +33,7 @@ class FashionMNIST(data.Dataset):
         aug_data = self.augmenter({
             'inputs': input,
             'targets': {
-                'label': target
+                'labels': target
             }
         })
 

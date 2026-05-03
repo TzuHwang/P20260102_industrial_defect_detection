@@ -71,39 +71,50 @@ class AlbumentationsAPI(AugmentationTemplate):
     def apply(self, subject: dict) -> dict:
         """
         subject: {
-            'inputs': image (H, W, C),
+            'inputs': image (H, W, C)  np.ndarray uint8
             'targets': {
-                'mask': mask (H, W),
-                'boxes': boxes (Nx4),
-                ...
+                'mask':   (H, W) np.ndarray          optional
+                'boxes':  list of [x1, y1, x2, y2]   optional  pascal_voc / xyxy
+                'labels': list of int                 optional  parallel to boxes
             }
         }
+        When boxes are present, self.transform is wrapped in A.Compose with
+        bbox_params so that coordinates are rescaled / flipped / rotated
+        consistently with the image.
         """
         image = subject['inputs']
         targets = subject.get('targets', {})
 
         mask = targets.get('mask', None)
         boxes = targets.get('boxes', None)
+        has_boxes = boxes is not None and len(boxes) > 0
 
-        # Albumentations expects a dict with 'image' and optional 'mask' or 'bboxes'
         aug_input = {'image': image}
         if mask is not None:
             aug_input['mask'] = mask
-        if boxes is not None:
-            # Albumentations expects boxes as list of [x_min, y_min, x_max, y_max]
-            aug_input['bboxes'] = boxes
-            aug_input['bbox_params'] = A.BboxParams(format='pascal_voc', label_fields=['labels'])
-            # Ensure 'labels' exists
-            aug_input['labels'] = targets.get('labels', [0] * len(boxes))
 
-        result = self.transform(**aug_input)
+        if has_boxes:
+            aug_input['bboxes'] = [list(b) for b in boxes]
+            aug_input['labels'] = list(targets.get('labels', [0] * len(boxes)))
+            transform = A.Compose(
+                [self.transform],
+                bbox_params=A.BboxParams(
+                    format='pascal_voc',
+                    label_fields=['labels'],
+                    min_visibility=0.1,
+                    clip=True,
+                ),
+            )
+        else:
+            transform = self.transform
 
-        # Update subject
+        result = transform(**aug_input)
+
         subject['inputs'] = result['image']
         if mask is not None:
             subject['targets']['mask'] = result['mask']
-        if boxes is not None:
-            subject['targets']['boxes'] = result['bboxes']
-            subject['targets']['labels'] = result['labels']
+        if has_boxes:
+            subject['targets']['boxes'] = [list(b) for b in result['bboxes']]
+            subject['targets']['labels'] = list(result['labels'])
 
         return subject

@@ -10,7 +10,7 @@ class StatisticMetrics:
         self.criterion = criterion
         self.metric_names = args.metric_names
         self.plot_names = args.plot_names
-        self.average = args.average
+        self.args = args
         self.metrics = {}
         self.plotters = {}
 
@@ -19,10 +19,9 @@ class StatisticMetrics:
 
     def _init_metrics(self):
         """Initialize metrics based on the configuration."""
-        args = type('Args', (), {'average': self.average})()
         for name in self.metric_names:
             if name in metrics.__dict__:
-                self.metrics[name] = metrics.__dict__.get(name)(args)
+                self.metrics[name] = metrics.__dict__.get(name)(self.args)
 
     def _init_plotters(self):
         """Initialize plotters for visualizing metrics."""

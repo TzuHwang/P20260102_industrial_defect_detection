@@ -1,0 +1,5 @@
+data_list: "data/internal_train/data_list_det/data_list_det.json"
+split_output: "data/internal_train/data_split_det_back.json"
+val_ratio: 0.2
+seed: 42
+side: back

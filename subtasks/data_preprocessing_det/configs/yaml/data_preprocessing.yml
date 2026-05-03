@@ -1,0 +1,4 @@
+data_dir: /root/data/tap_measure
+exclude_subdirs: ["OneDrive_1_2026-2-26/舊版尺帶/Test20221103"]
+exclude_keywords: [test, 測試]
+output: "data/internal_train/data_list_det/data_list_det"

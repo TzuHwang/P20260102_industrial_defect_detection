@@ -1,6 +1,7 @@
 import torch
 
 from .activation import ActivationFactory
+from .assignment import AssignmentFactory
 from .loss import LossFactory
 from .models import ModelFactory
 from .optimizer import OptimizerFactory
@@ -17,6 +18,11 @@ class ArchitectureBuilder:
         self.model = ModelFactory(args.model)
         self.activation = ActivationFactory(args.activation).get_activation()
         self.loss_funcs = LossFactory(args.loss_funcs)
+
+        # Optional: detection assignment (only present in detection configs)
+        if hasattr(args, 'assignment'):
+            assigner = AssignmentFactory(args.assignment)
+            self.loss_funcs.set_assigner(assigner)
 
         self.optimizer = OptimizerFactory(self.model.parameters(), args.optimizer).get_optimizer()
         self.scheduler = SchedulerFactory(self.optimizer, args.scheduler).get_scheduler()

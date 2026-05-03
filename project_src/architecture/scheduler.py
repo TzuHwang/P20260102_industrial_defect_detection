@@ -2,7 +2,6 @@ import torch.optim.lr_scheduler as lr_scheduler
 from torch.optim.lr_scheduler import ReduceLROnPlateau, _LRScheduler
 
 from project_src.utils.file_dealer import namespace_to_dict
-from project_src.utils.pipeline import get_attr
 
 
 class GradualWarmupScheduler(_LRScheduler):

@@ -5,7 +5,6 @@ Deployment module for exporting trained models to ONNX format.
 import torch
 
 from project_src.architecture import ArchitectureBuilder
-from project_src.utils.pipeline import get_attr
 
 
 def export_onnx(args):
@@ -17,14 +16,14 @@ def export_onnx(args):
     """
     deploy_cfg = args.deploy
 
-    checkpoint_path = get_attr(deploy_cfg, 'checkpoint_path', None)
+    checkpoint_path = getattr(deploy_cfg, 'checkpoint_path', None)
     if checkpoint_path is None:
         raise ValueError("deploy.checkpoint_path must be provided in config for ONNX export")
 
-    output_path = get_attr(deploy_cfg, 'output_path', 'outputs/model.onnx')
-    input_shape = get_attr(deploy_cfg, 'input_shape', [1, 3, 224, 224])
-    opset_version = get_attr(deploy_cfg, 'opset_version', 17)
-    dynamic_axes = get_attr(deploy_cfg, 'dynamic_axes', None)
+    output_path = getattr(deploy_cfg, 'output_path', 'outputs/model.onnx')
+    input_shape = getattr(deploy_cfg, 'input_shape', [1, 3, 224, 224])
+    opset_version = getattr(deploy_cfg, 'opset_version', 17)
+    dynamic_axes = getattr(deploy_cfg, 'dynamic_axes', None)
 
     # Build model and load weights
     arch = ArchitectureBuilder(args.architecture)

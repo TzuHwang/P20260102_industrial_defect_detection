@@ -11,8 +11,8 @@ label_match_dict = {
     '10印刷重': 10,
     '11上光起泡': 11,
     '11印刷重': 10,  # == 10印刷重
-    '12黑块': 12,
-    '13上光起泡': 8,  # the label 8 is not present in the dataset, so we assign it to 13上光起泡
+    '12黑块': 8,
+    '13上光起泡': 11,  # same defect as 11上光起泡
     # blank_tape* == 7 空白接头
     'blank_tape:0.36': 7,
     'blank_tape:0.38': 7,

@@ -2,12 +2,18 @@ import numpy as np
 from sklearn.metrics import (accuracy_score, f1_score, precision_score,
                              recall_score, roc_auc_score)
 
+from .iou import IoU, Dice
+from .map import MeanAveragePrecision
+
 __all__ = [
     'Accuracy',
     'Precision',
     'Recall',
     'F1Score',
     'AUC',
+    'IoU',
+    'Dice',
+    'MeanAveragePrecision',
 ]
 
 

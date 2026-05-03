@@ -1,5 +1,7 @@
 # vscode
 __pycache__
+.vscode/
+pyrightconfig.json
 
 # pytest
 *FashionMNIST*
@@ -8,10 +10,13 @@ __pycache__
 # misc
 actions-runner
 configs/ci
+sdk/
 
 # outputs
 outputs/*
 
-# vscode
-.vscode/
-pyrightconfig.json
+# pretrain pth
+pretrained
+
+# claude
+.claude

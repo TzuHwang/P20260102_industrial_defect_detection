@@ -9,6 +9,7 @@ import torch
 
 from project_src.architecture import ArchitectureBuilder
 from project_src.dataloader import DataLoaderFactory
+from project_src.post_process import PostProcessFactory
 
 
 @torch.no_grad()
@@ -28,6 +29,9 @@ def inference(args):
     arch.load_pretrained()
     model = arch.get_model()
     model.eval()
+
+    # Wrap model in post-processor
+    model = PostProcessFactory(args.post_process, model)
 
     # Setup device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

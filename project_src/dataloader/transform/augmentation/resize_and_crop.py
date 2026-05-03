@@ -22,7 +22,7 @@ class Resize(AlbumentationsAPI):
         interpolation = self.supported_interpolations.get(
             args.interpolation, cv2.INTER_LINEAR)
         mask_interpolation = self.supported_interpolations.get(
-            args.mask_interpolation, cv2.INTER_NEAREST)
+            getattr(args, 'mask_interpolation', 'NEAREST'), cv2.INTER_NEAREST)
 
         self.transform = A.Resize(
             height=input_size[0],
