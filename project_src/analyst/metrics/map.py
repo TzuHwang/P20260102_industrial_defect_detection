@@ -71,7 +71,7 @@ def _ap_at_iou(preds, gts, iou_threshold, num_classes):
 
         cum_tp = tp.cumsum()
         cum_fp = fp.cumsum()
-        recalls    = cum_tp / n_gt
+        recalls = cum_tp / n_gt
         precisions = cum_tp / (cum_tp + cum_fp + 1e-6)
         aps.append(_compute_ap(recalls, precisions))
 

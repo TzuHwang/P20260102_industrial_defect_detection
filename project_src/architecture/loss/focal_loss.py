@@ -27,14 +27,29 @@ class FocalLoss(nn.Module):
     def forward(self, predictions: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            predictions: Raw logits of shape (N, C) for multi-class or (N,) for binary.
-            targets: Class indices of shape (N,) for multi-class or (N,) for binary.
+            predictions: Raw logits.
+                - (N, C) with C > 1 and targets float (N, C): sigmoid binary per class
+                  (detection style — one-hot for positives, zeros for negatives).
+                - (N, C) with C > 1 and targets long (N,): softmax multi-class
+                  (classification style).
+                - (N,) or (N, 1): single binary logit.
 
         Returns:
             Focal loss scalar (or per-sample tensor if reduction='none').
         """
-        if predictions.dim() == 1 or predictions.shape[1] == 1:
-            # Binary case
+        if predictions.dim() == 2 and predictions.shape[1] > 1 and targets.dim() == 2:
+            # Detection binary-sigmoid path: targets are (N, C) float one-hot / zero.
+            # Each class is treated as an independent binary classifier.
+            bce = F.binary_cross_entropy_with_logits(predictions, targets.float(),
+                                                     reduction='none')  # (N, C)
+            p_t = torch.exp(-bce)
+            focal_weight = (1 - p_t) ** self.gamma
+            if self.alpha is not None:
+                alpha_t = self.alpha * targets + (1 - self.alpha) * (1 - targets)
+                focal_weight = focal_weight * alpha_t
+            loss = (focal_weight * bce).sum(dim=-1)  # sum over classes, keep per-sample
+        elif predictions.dim() == 1 or predictions.shape[1] == 1:
+            # Scalar binary case
             predictions = predictions.view(-1)
             targets = targets.float().view(-1)
             bce = F.binary_cross_entropy_with_logits(predictions, targets, reduction='none')
@@ -44,7 +59,7 @@ class FocalLoss(nn.Module):
                 focal_weight = focal_weight * (self.alpha * targets + (1 - self.alpha) * (1 - targets))
             loss = focal_weight * bce
         else:
-            # Multi-class case
+            # Multi-class softmax case (classification tasks)
             log_p = F.log_softmax(predictions, dim=1)
             ce = F.nll_loss(log_p, targets.long(), reduction='none')
             p_t = torch.exp(-ce)

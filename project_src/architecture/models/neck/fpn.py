@@ -16,17 +16,17 @@ class FPN(nn.Module):
     def __init__(self, in_channels=(512, 1024, 2048), out_channels=256):
         super().__init__()
         C3, C4, C5 = in_channels
-        O = out_channels
+        out_ch = out_channels
 
-        self.lat_p5 = nn.Conv2d(C5, O, 1)
-        self.lat_p4 = nn.Conv2d(C4, O, 1)
-        self.lat_p3 = nn.Conv2d(C3, O, 1)
+        self.lat_p5 = nn.Conv2d(C5, out_ch, 1)
+        self.lat_p4 = nn.Conv2d(C4, out_ch, 1)
+        self.lat_p3 = nn.Conv2d(C3, out_ch, 1)
 
-        self.out_p5 = nn.Conv2d(O, O, 3, padding=1)
-        self.out_p4 = nn.Conv2d(O, O, 3, padding=1)
-        self.out_p3 = nn.Conv2d(O, O, 3, padding=1)
+        self.out_p5 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.out_p4 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
+        self.out_p3 = nn.Conv2d(out_ch, out_ch, 3, padding=1)
 
-        self.out_channels = (O, O, O)
+        self.out_channels = (out_ch, out_ch, out_ch)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

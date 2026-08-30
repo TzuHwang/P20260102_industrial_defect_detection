@@ -29,7 +29,7 @@ class PostProcessFactory:
 
         if issubclass(wrapper_cls, CAMWrapper):
             self._wrapped = wrapper_cls(args, model, self._resolve_target_layer(args, model))
-        elif wrapper_cls in (NMSWrapper, FasterRCNNDecoder):
+        elif wrapper_cls is NMSWrapper:
             # Detection decoders are stateless callables — no model reference needed.
             kw = {k: v for k, v in vars(args).items() if k != 'type'} if hasattr(args, '__dict__') else {}
             self._wrapped = wrapper_cls(**kw)

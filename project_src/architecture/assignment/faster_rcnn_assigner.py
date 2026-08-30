@@ -207,9 +207,10 @@ class FasterRCNNAssigner:
             cls_tgts[:len(pos_s)] = gt_labels[best_gt_per_prop[pos_s]].long()
 
         # Regression targets for positive RoIs only
-        delta_tgts = _encode_boxes(proposals[pos_s],
-                                   gt_boxes[best_gt_per_prop[pos_s]]) if len(pos_s) > 0 else \
-                     bbox_preds.new_zeros(0, 4)
+        if len(pos_s) > 0:
+            delta_tgts = _encode_boxes(proposals[pos_s], gt_boxes[best_gt_per_prop[pos_s]])
+        else:
+            delta_tgts = bbox_preds.new_zeros(0, 4)
 
         return ((cls_scores_s, cls_tgts),
                 (bbox_preds[pos_s], delta_tgts))

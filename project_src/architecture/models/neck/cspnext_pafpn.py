@@ -20,24 +20,24 @@ class CSPNeXtPAFPN(nn.Module):
         super().__init__()
 
         C3, C4, C5 = in_channels
-        O = out_channels
+        out_ch = out_channels
 
         # Lateral projections
-        self.reduce_p5 = ConvBnSiLU(C5, O, 1)
-        self.reduce_p4 = ConvBnSiLU(C4, O, 1)
-        self.reduce_p3 = ConvBnSiLU(C3, O, 1)
+        self.reduce_p5 = ConvBnSiLU(C5, out_ch, 1)
+        self.reduce_p4 = ConvBnSiLU(C4, out_ch, 1)
+        self.reduce_p3 = ConvBnSiLU(C3, out_ch, 1)
 
         # Top-down fusion
-        self.csp_td_p4 = CSPLayer(O * 2, O, num_blocks=num_blocks, shortcut=False)
-        self.csp_td_p3 = CSPLayer(O * 2, O, num_blocks=num_blocks, shortcut=False)
+        self.csp_td_p4 = CSPLayer(out_ch * 2, out_ch, num_blocks=num_blocks, shortcut=False)
+        self.csp_td_p3 = CSPLayer(out_ch * 2, out_ch, num_blocks=num_blocks, shortcut=False)
 
         # Bottom-up downsampling and fusion
-        self.down_p3 = ConvBnSiLU(O, O, 3, stride=2)
-        self.csp_bu_p4 = CSPLayer(O * 2, O, num_blocks=num_blocks, shortcut=False)
-        self.down_p4 = ConvBnSiLU(O, O, 3, stride=2)
-        self.csp_bu_p5 = CSPLayer(O * 2, O, num_blocks=num_blocks, shortcut=False)
+        self.down_p3 = ConvBnSiLU(out_ch, out_ch, 3, stride=2)
+        self.csp_bu_p4 = CSPLayer(out_ch * 2, out_ch, num_blocks=num_blocks, shortcut=False)
+        self.down_p4 = ConvBnSiLU(out_ch, out_ch, 3, stride=2)
+        self.csp_bu_p5 = CSPLayer(out_ch * 2, out_ch, num_blocks=num_blocks, shortcut=False)
 
-        self.out_channels = (O, O, O)
+        self.out_channels = (out_ch, out_ch, out_ch)
 
     def forward(self, features):
         """Forward pass.

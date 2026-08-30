@@ -101,7 +101,7 @@ class AnchorGenerator:
         xs = (torch.arange(feat_w, device=device, dtype=torch.float32) + 0.5) * stride
         gy, gx = torch.meshgrid(ys, xs, indexing='ij')
         shifts = torch.stack([gx.flatten(), gy.flatten(),
-                               gx.flatten(), gy.flatten()], dim=1)  # (H*W, 4)
+                              gx.flatten(), gy.flatten()], dim=1)  # (H*W, 4)
 
         anchors = (base[None] + shifts[:, None]).reshape(-1, 4)  # (H*W*R, 4)
         return anchors
@@ -249,7 +249,6 @@ class FasterRCNNHead(nn.Module):
             all_anchors.append(anchors)                  # (A_l, 4)
 
             rpn_cls, rpn_reg = self.rpn(feat)            # (N, A, H, W)
-            A = self.anchor_gen.num_anchors()
             # (N, A, H, W) → (N, H*W*A)
             all_cls_logits.append(rpn_cls.permute(0, 2, 3, 1).reshape(N, -1))
             # (N, A*4, H, W) → (N, H*W*A, 4)
@@ -273,12 +272,12 @@ class FasterRCNNHead(nn.Module):
 
         return {
             # RPN outputs (needed by assigner for RPN loss)
-            'anchors_flat':   anchors_cat,       # (total_A, 4)
-            'rpn_cls_flat':   cls_flat,           # (N, total_A) — batch dim kept for per-img assignment
-            'rpn_reg_flat':   reg_flat,           # (N, total_A, 4)
+            'anchors_flat': anchors_cat,       # (total_A, 4)
+            'rpn_cls_flat': cls_flat,           # (N, total_A) — batch dim kept for per-img assignment
+            'rpn_reg_flat': reg_flat,           # (N, total_A, 4)
             # RoI outputs (needed by assigner for RoI loss)
-            'proposals_cat':  proposals_cat,      # (total_P, 4)
-            'roi_img_ids':    roi_img_ids,         # (total_P,)
+            'proposals_cat': proposals_cat,      # (total_P, 4)
+            'roi_img_ids': roi_img_ids,         # (total_P,)
             'roi_cls_scores': roi_cls_scores,      # (total_P, C+1)
             'roi_bbox_preds': roi_bbox_preds,      # (total_P, 4)
         }

@@ -14,6 +14,7 @@ from pathlib import Path
 
 from project_src.arguments import AccessArgs
 from subtasks.data_preprocessing.scripts.label_match import label_match_dict
+from subtasks.data_preprocessing_det.scripts.draw_specimens import draw_all_specimens
 
 
 IMAGE_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.bmp'}
@@ -131,6 +132,9 @@ def main(args):
     print(f'  front: {front};  back: {back}')
     print(f'  with annotations: {has_ann};  negatives: {len(records) - has_ann}')
     print(f'Saved to: {out_path}')
+
+    print('Drawing specimen grids ...')
+    draw_all_specimens(records, out_path.parent / 'specimens')
 
 
 if __name__ == '__main__':

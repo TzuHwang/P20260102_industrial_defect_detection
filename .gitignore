@@ -12,6 +12,9 @@ actions-runner
 configs/ci
 sdk/
 
+# data
+data
+
 # outputs
 outputs/*
 
@@ -20,3 +23,4 @@ pretrained
 
 # claude
 .claude
+*CLAUDE*

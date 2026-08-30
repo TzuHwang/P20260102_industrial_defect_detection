@@ -132,11 +132,24 @@ class LossFactory:
                 anchor = ref[0] if isinstance(ref, (list, tuple)) else ref
                 return anchor.sum() * 0.0
 
+            # num_pos: number of positive (bbox) samples — used to normalise
+            # FocalLoss so that each positive contributes the same gradient
+            # regardless of how many negatives are sampled (RTMDet-style).
+            num_pos = max(1, matched_pairs[-1][0].shape[0])
+
             for i, (loss_name, (inp, tgt)) in enumerate(zip(self.losses, matched_pairs)):
                 if inp.shape[0] == 0:
                     continue
                 loss_fcn = self.loss_fcns[loss_name]
                 loss_value = loss_fcn(inp, tgt)
+
+                # For binary-sigmoid FocalLoss over balanced (pos+neg) samples:
+                # convert mean → sum/num_pos so every positive has equal weight.
+                if (loss_name in self.LOGIT_LOSSES
+                        and tgt.dim() == 2
+                        and tgt.dtype == torch.float32):
+                    loss_value = loss_value * inp.shape[0] / num_pos
+
                 if self.weights is not None:
                     loss_value = loss_value * self.weights[i]
                 self.loss_values[loss_name] = loss_value

@@ -48,33 +48,35 @@ class AssignmentFactory:
 
         flat_cls, flat_box, anchor_pts = self._flatten(cls_per_level, box_per_level, device)
         num_boxes = targets['num_boxes']
-        all_cls, all_box, all_lbl, all_gt = [], [], [], []
+        all_cls_logits, all_cls_targets = [], []
+        all_box, all_gt = [], []
 
         for i in range(N):
             n = int(num_boxes[i]) if isinstance(num_boxes, torch.Tensor) else int(num_boxes)
-            if n == 0:
-                continue
             result = self.assigner.assign(
                 flat_cls[i], flat_box[i], anchor_pts,
                 targets['labels'][i, :n], targets['boxes'][i, :n],
             )
-            if result['cls_logits'].shape[0] == 0:
-                continue
-            all_cls.append(result['cls_logits'])
-            all_box.append(result['bbox_preds'])
-            all_lbl.append(result['gt_labels'])
-            all_gt.append(result['gt_boxes'])
+            # cls_logits contains only positive predictions (one-hot sigmoid targets)
+            all_cls_logits.append(result['cls_logits'])
+            all_cls_targets.append(result['cls_targets'])
+            if result['bbox_preds'].shape[0] > 0:
+                all_box.append(result['bbox_preds'])
+                all_gt.append(result['gt_boxes'])
 
-        if not all_cls:
-            C = flat_cls.shape[-1]
-            return [
-                (flat_cls.new_zeros(0, C), targets['labels'].new_zeros(0)),
-                (flat_box.new_zeros(0, 4), targets['boxes'].new_zeros(0, 4)),
-            ]
+        cls_logits_cat = torch.cat(all_cls_logits, dim=0)   # (N*P, C)
+        cls_targets_cat = torch.cat(all_cls_targets, dim=0)  # (N*P, C)
+
+        if all_box:
+            bbox_preds_cat = torch.cat(all_box, dim=0)
+            gt_boxes_cat = torch.cat(all_gt, dim=0)
+        else:
+            bbox_preds_cat = flat_cls.new_zeros(0, 4)
+            gt_boxes_cat = flat_cls.new_zeros(0, 4)
 
         return [
-            (torch.cat(all_cls, dim=0), torch.cat(all_lbl, dim=0)),
-            (torch.cat(all_box, dim=0), torch.cat(all_gt, dim=0)),
+            (cls_logits_cat, cls_targets_cat),   # (num_pos, C) one-hot float → sigmoid binary FocalLoss
+            (bbox_preds_cat, gt_boxes_cat),       # (num_pos, 4) → GIoULoss
         ]
 
     def _flatten(self, cls_per_level, box_per_level, device):

@@ -1,0 +1,17 @@
+# Runtime dependencies for the deployed defect-detection app (Windows + NVIDIA GPU).
+# The GUI (PySide6) and packaging (PyInstaller) deps are added in a later round.
+onnxruntime-gpu>=1.24        # CPU-only dev: use `onnxruntime` instead
+opencv-python>=4.12
+numpy>=2.0
+cryptography>=43.0
+PySide6>=6.7                 # GUI
+pillow>=10.0                 # CJK label rendering in overlays
+
+# FP16 TensorRT backend (the >90fps path). Falls back to onnxruntime if absent.
+# Match the TensorRT major version to your onnxruntime build if you also want the
+# onnxruntime TRT EP; this app talks to TensorRT directly via cuda-python.
+tensorrt>=10
+cuda-python>=12
+
+# Dev-only (ONNX export, inside the CUDA Docker container):
+#   rfdetr onnx onnxsim

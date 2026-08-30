@@ -49,6 +49,7 @@ class NMSWrapper:
         centers = torch.stack([grid_x, grid_y], dim=-1).view(1, H * W, 2)  # (1, HW, 2)
 
         ltrb = bbox_pred.permute(0, 2, 3, 1).reshape(N, H * W, 4) * stride
+        ltrb = ltrb.clamp(min=0)          # negative offsets → degenerate boxes
         x1y1 = centers - ltrb[..., :2]   # cx - l, cy - t
         x2y2 = centers + ltrb[..., 2:]   # cx + r, cy + b
         boxes = torch.cat([x1y1, x2y2], dim=-1)  # (N, HW, 4)

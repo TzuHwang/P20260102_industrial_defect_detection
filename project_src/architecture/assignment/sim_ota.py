@@ -94,6 +94,8 @@ class SimOTA(BaseAssigner):
         self.topk = getattr(args, 'topk', 10)
         self.iou_weight = getattr(args, 'iou_weight', 3.0)
         self.cls_weight = getattr(args, 'cls_weight', 1.0)
+        # Negatives sampled per positive for FocalLoss (balances gradient signal)
+        self.neg_pos_ratio = getattr(args, 'neg_pos_ratio', 3)
 
     def assign(
         self,
@@ -110,9 +112,9 @@ class SimOTA(BaseAssigner):
         def _empty():
             return dict(
                 cls_logits=cls_logits.new_zeros(0, num_cls),
+                cls_targets=cls_logits.new_zeros(0, num_cls),
                 bbox_preds=cls_logits.new_zeros(0, 4),
-                gt_labels=gt_labels.new_zeros(0),
-                gt_boxes=gt_boxes.new_zeros(0, 4),
+                gt_boxes=cls_logits.new_zeros(0, 4),
             )
 
         if num_gt == 0:
@@ -168,12 +170,18 @@ class SimOTA(BaseAssigner):
             matching[conflict, best_gt] = 1.0
 
         # ── Gather positives ─────────────────────────────────────────────────
-        pos_mask = matching.sum(dim=1) > 0       # (P,)
-        gt_idx = matching[pos_mask].argmax(dim=1) # (num_pos,)
+        pos_mask = matching.sum(dim=1) > 0        # (P,)
+        gt_idx = matching[pos_mask].argmax(dim=1)  # (num_pos,)
+
+        # One-hot sigmoid targets: 1 for the assigned class, 0 for the rest.
+        # Enforces both class prediction (target=1) and suppression of wrong classes
+        # (target=0) at each positive location — no separate negative sampling needed.
+        cls_targets = F.one_hot(gt_labels[gt_idx].long(), num_cls).float()  # (num_pos, C)
 
         return dict(
-            cls_logits=cls_logits[pos_mask],      # (num_pos, C)
-            bbox_preds=decoded[pos_mask],          # (num_pos, 4) xyxy
-            gt_labels=gt_labels[gt_idx],           # (num_pos,)
-            gt_boxes=gt_boxes[gt_idx],             # (num_pos, 4)
+            cls_logits=cls_logits[pos_mask],  # (num_pos, C)
+            cls_targets=cls_targets,           # (num_pos, C) one-hot float
+            bbox_preds=decoded[pos_mask],      # (num_pos, 4) xyxy
+            gt_labels=gt_labels[gt_idx],       # (num_pos,)
+            gt_boxes=gt_boxes[gt_idx],         # (num_pos, 4)
         )

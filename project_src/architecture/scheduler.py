@@ -21,9 +21,11 @@ class GradualWarmupScheduler(_LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
-        if self.last_epoch > self.total_iters:
+        if self.last_epoch >= self.total_iters:
             if self.after_scheduler is not None:
-                if not self.after_scheduler.finished:
+                # 'finished' only exists on GradualWarmupScheduler; default to False
+                # for standard schedulers (CosineAnnealingLR, StepLR, etc.)
+                if not getattr(self.after_scheduler, 'finished', False):
                     return self.after_scheduler.get_lr()
                 else:
                     return [base_lr for base_lr in self.base_lrs]

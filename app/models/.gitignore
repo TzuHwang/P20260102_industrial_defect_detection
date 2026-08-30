@@ -1,0 +1,8 @@
+# Never commit the decryption key or the plaintext ONNX.
+model.key
+*.onnx
+# TensorRT engines are GPU/driver/version-specific and built on the target
+# machine at install time, not shipped.
+*.trt
+# Encrypted models are shipped with the installer, not through git (~130MB each).
+*.enc

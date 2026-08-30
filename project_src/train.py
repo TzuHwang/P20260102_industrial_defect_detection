@@ -255,7 +255,6 @@ class LitModel(L.LightningModule):
         import numpy as np
         det_results = self.det_decoder(logits)          # list[dict] per image
         num_boxes = targets['num_boxes']
-        N = len(det_results)
 
         preds_list = getattr(self, f'_{split}_det_preds')
         tgts_list = getattr(self, f'_{split}_det_targets')
@@ -318,6 +317,23 @@ class LitModel(L.LightningModule):
         return metrics
 
 
+def _parse_devices(devices):
+    """Parse a device string into (accelerator, devices) for Lightning Trainer.
+
+    Accepted forms:
+        'cpu'      → ('cpu', 1)
+        'cuda:0'   → ('cuda', [0])
+        'cuda:1'   → ('cuda', [1])
+        'auto'     → ('auto', 'auto')
+    """
+    if isinstance(devices, str):
+        if devices == 'cpu':
+            return 'cpu', 1
+        if devices.startswith('cuda:'):
+            return 'cuda', [int(devices.split(':')[1])]
+    return 'auto', 'auto'
+
+
 def train(args):
     """
     Main training function.
@@ -340,12 +356,14 @@ def train(args):
     val_loader = DataLoaderFactory(args.dataloader, 'val').get_loader()
 
     # Create trainer
+    accelerator, devices = _parse_devices(getattr(args.pipeline, 'devices', 'auto'))
     trainer = L.Trainer(
         # Training control
         max_epochs=getattr(args.pipeline, 'epochs', 100),
 
-        # Accelerator selection (auto-detect GPU/TPU/CPU)
-        devices=getattr(args.pipeline, 'devices', 'auto'),
+        # Accelerator / device selection
+        accelerator=accelerator,
+        devices=devices,
         num_nodes=getattr(args.pipeline, 'gpu_num', 1),
 
         # Fast dev run for debugging
